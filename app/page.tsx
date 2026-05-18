@@ -44,7 +44,7 @@ export default function Home() {
           </div>
 
           <div className="text-xs font-mono uppercase tracking-widest text-ink-dim">
-            By Asaf · Take-Home
+            By Asaf
           </div>
         </div>
       </header>
@@ -55,7 +55,7 @@ export default function Home() {
 
       <footer className="border-t border-line mt-12 py-6">
         <div className="max-w-7xl mx-auto px-6 text-xs font-mono uppercase tracking-widest text-ink-dim text-center">
-          Interactive prototype · Built for HAAT Ops PM Take-Home · Asaf · 2026
+          Interactive prototype · By Asaf · 2026
         </div>
       </footer>
     </div>

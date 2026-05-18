@@ -2,16 +2,15 @@
 
 import { useState, useEffect } from "react";
 import {
-  TrendingUp, TrendingDown, AlertTriangle, AlertCircle, CheckCircle,
-  Users, Building2, Clock, Zap, ArrowRight, Filter, Download, Bell
+  TrendingUp, TrendingDown, AlertTriangle, ArrowRight, Filter, Download, Bell
 } from "lucide-react";
 
 const couriers = [
-  { name: "Ahmad Hassan", id: "CR-2847", city: "Nazareth", float: 2840, lastDeposit: "47h", risk: "HIGH" },
-  { name: "Omar Khaled", id: "CR-1593", city: "Umm al-Fahm", float: 2210, lastDeposit: "31h", risk: "HIGH" },
-  { name: "Yousef Ali", id: "CR-3201", city: "Haifa", float: 1940, lastDeposit: "22h", risk: "MED" },
-  { name: "Sami Daher", id: "CR-2105", city: "Baqa al-Gharbiya", float: 1680, lastDeposit: "18h", risk: "MED" },
-  { name: "Khalil Mansour", id: "CR-4521", city: "Tira", float: 1420, lastDeposit: "9h", risk: "LOW" },
+  { name: "Ahmad Hassan", id: "CR-2847", city: "Nazareth", balance: 120, lastTopUp: "47h", risk: "HIGH" },
+  { name: "David Levi", id: "CR-1593", city: "Haifa", balance: 95, lastTopUp: "31h", risk: "HIGH" },
+  { name: "Yousef Ali", id: "CR-3201", city: "Haifa", balance: 210, lastTopUp: "22h", risk: "MED" },
+  { name: "Michael Cohen", id: "CR-2105", city: "Tel Aviv", balance: 245, lastTopUp: "18h", risk: "MED" },
+  { name: "Sergey Volkov", id: "CR-4521", city: "Tira", balance: 380, lastTopUp: "9h", risk: "LOW" },
 ];
 
 const merchants = [
@@ -22,9 +21,9 @@ const merchants = [
 ];
 
 const alerts = [
-  { type: "HIGH", icon: "🚨", title: "12 couriers exceeded cash cap", body: "Cash dispatch suspended automatically. Notified to deposit before next pickup." },
+  { type: "HIGH", icon: "🚨", title: "12 couriers below balance threshold", body: "Cash dispatch auto-suspended. Couriers prompted to top up before next pickup." },
   { type: "MED", icon: "⚠", title: "Falafel King: ₪8,400 debt aging", body: "45 days outstanding · Auto-deduct from next credit settlement scheduled." },
-  { type: "MED", icon: "⚠", title: "Settlement delay: Nazareth zone", body: "Avg time-to-deposit: 14h (target: 4h). 3 couriers driving the average." },
+  { type: "MED", icon: "⚠", title: "Top-up velocity slowing in Nazareth", body: "Avg time-to-top-up: 14h (target: 4h). Reviewing dispatch logic for the zone." },
 ];
 
 export default function OpsDashboard() {
@@ -69,12 +68,12 @@ export default function OpsDashboard() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <KpiCard
-          label="Total Courier Float"
-          value="847,200"
+          label="Total Balance Pool"
+          value="487,300"
           unit="₪"
-          change="-12%"
-          changeDir="down"
-          sub="Across 1,243 active couriers"
+          change="+18%"
+          changeDir="up"
+          sub="Held across 1,243 active couriers"
         />
         <KpiCard
           label="Outstanding Partner Debt"
@@ -85,12 +84,12 @@ export default function OpsDashboard() {
           sub="427 merchants with balance"
         />
         <KpiCard
-          label="Avg Time-to-Settlement"
-          value="5.8"
-          unit="h"
-          change="-35%"
+          label="Avg Settlement Latency"
+          value="<1"
+          unit="s"
+          change="-99%"
           changeDir="down"
-          sub="Target: under 4h"
+          sub="Auto-charged on completion"
         />
         <KpiCard
           label="Auto-Settlement Rate"
@@ -106,22 +105,22 @@ export default function OpsDashboard() {
       <div className="bg-white rounded-2xl border border-line p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="font-serif font-bold text-lg">Today's Cash Movement</h2>
+            <h2 className="font-serif font-bold text-lg">Today's Money Flow</h2>
             <div className="text-xs font-mono uppercase tracking-widest text-ink-dim mt-0.5">
-              End-to-end flow · Live tracking
+              How money moves through HAAT · Live
             </div>
           </div>
           <div className="text-xs text-ink-dim live-dot">Updating</div>
         </div>
 
         <div className="grid grid-cols-9 items-center gap-1">
-          <FlowNode amount="1.2M" label="Customers Paid" color="green" />
+          <FlowNode amount="487K" label="Courier Balances" color="ink" />
           <FlowArrow />
-          <FlowNode amount="847K" label="Held by Couriers" color="amber" warning />
+          <FlowNode amount="1.2M" label="Cash Orders Today" color="amber" />
           <FlowArrow />
-          <FlowNode amount="353K" label="Deposited" color="ink" />
+          <FlowNode amount="298K" label="Charged from Balances" color="green" />
           <FlowArrow />
-          <FlowNode amount="298K" label="Paid to Merchants" color="green" />
+          <FlowNode amount="253K" label="Paid to Merchants" color="green" />
         </div>
       </div>
 
@@ -131,9 +130,9 @@ export default function OpsDashboard() {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-line p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="font-serif font-bold text-lg">Top Risk Couriers</h2>
+              <h2 className="font-serif font-bold text-lg">Couriers Needing Top-Up</h2>
               <div className="text-xs font-mono uppercase tracking-widest text-ink-dim mt-0.5">
-                Highest cash float · Aging not deposited
+                Lowest balance · Cash dispatch at risk
               </div>
             </div>
             <button className="text-xs text-accent font-semibold hover:underline">
@@ -148,10 +147,10 @@ export default function OpsDashboard() {
                   Courier
                 </th>
                 <th className="text-left text-[10px] font-mono uppercase tracking-widest text-ink-dim font-semibold py-2">
-                  Float
+                  Balance
                 </th>
                 <th className="text-left text-[10px] font-mono uppercase tracking-widest text-ink-dim font-semibold py-2">
-                  Last Deposit
+                  Last Top-Up
                 </th>
                 <th className="text-center text-[10px] font-mono uppercase tracking-widest text-ink-dim font-semibold py-2">
                   Risk
@@ -168,8 +167,8 @@ export default function OpsDashboard() {
                     <div className="font-semibold text-sm">{c.name}</div>
                     <div className="text-[10px] font-mono text-ink-dim">{c.id} · {c.city}</div>
                   </td>
-                  <td className="py-3 font-bold text-sm">₪{c.float.toLocaleString()}</td>
-                  <td className="py-3 text-xs text-ink-dim">{c.lastDeposit} ago</td>
+                  <td className="py-3 font-bold text-sm">₪{c.balance.toLocaleString()}</td>
+                  <td className="py-3 text-xs text-ink-dim">{c.lastTopUp} ago</td>
                   <td className="py-3 text-center">
                     <RiskBadge level={c.risk} />
                   </td>
@@ -239,7 +238,7 @@ export default function OpsDashboard() {
 
       {/* Footer note */}
       <div className="bg-yellow/10 border-l-4 border-yellow rounded-r-lg p-4 text-sm text-ink">
-        <strong className="font-serif">Note on this prototype:</strong> Dashboard interactive prototype demonstrates the core interaction model — KPI tracking, risk identification, alert handling, and end-to-end cash visibility. Production version would include drill-down per courier/merchant, exportable reconciliation reports, full audit trail at ledger level, and configurable SLA thresholds per zone.
+        <strong className="font-serif">Note on this prototype:</strong> Demonstrates the core interaction model — KPI tracking, balance health, alert handling, and end-to-end money visibility. Production version would include drill-down per courier/merchant, exportable reconciliation reports, full audit trail at ledger level, and configurable thresholds per zone.
       </div>
     </div>
   );
